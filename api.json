@@ -1,0 +1,43 @@
+{
+
+}
+
+[
+    {
+      "id": "living-room",
+      "name": "Living Room",
+      "lightsOn": 3,
+      "totalLights": 5,
+      "energyUsage": 60
+    },
+    {
+      "id": "bedroom",
+      "name": "Bedroom",
+      "lightsOn": 1,
+      "totalLights": 2,
+      "energyUsage": 50
+    }
+]
+
+
+
+const fromIOT= [
+    { 
+        "name": "Room1", 
+        "lightState": false, 
+        "fanState": true 
+    }, 
+    { 
+        "name": "Room2", 
+        "lightState": true, 
+        "fanState": true 
+    }, 
+    { 
+        "name": "Room3", 
+        "lightState": true, 
+        "fanState": true
+    }
+]
+  
+
+
