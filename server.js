@@ -1,38 +1,62 @@
-import express from 'express';
-import bodyParser from 'body-parser';
-import SerialPort from 'serialport';
-const Readline = require('@serialport/parser-readline');
+import express from "express";
+import bodyParser from "body-parser";
+import mongoose from "mongoose";
+import { SerialPort } from "serialport";
+import { ReadlineParser } from "@serialport/parser-readline";
+import dotenv from "dotenv";
+import Grid from "./models/Grid.js";
+import GridRouter from "./routes/grid.route.js";
+import EnergyRouter from "./routes/energy.routes.js";
+
+dotenv.config();
 
 const app = express();
-const port = 3000;
+const port = 3001;
 
 // Middleware
 app.use(bodyParser.json());
 
-// Store room data in memory
-let roomData = [];
+// Connect to MongoDB
+mongoose.connect(process.env.MONGODB_URI);
+
+mongoose.connection.on("connected", () => {
+  console.log("Connected to MongoDB");
+});
+
+mongoose.connection.on("error", (err) => {
+  console.error("Error connecting to MongoDB:", err.message);
+});
+
+// Store grid data in memory
+let gridData = [];
 
 // Set up serial communication with Arduino
-const serialPort = new SerialPort('COM3', { baudRate: 9600 }); // Replace 'COM3' with your Arduino's port
-const parser = serialPort.pipe(new Readline({ delimiter: '\n' }));
+const serialPort = new SerialPort({ path: "COM3", baudRate: 9600 }); // Replace 'COM3' with your Arduino's port
+const parser = serialPort.pipe(new ReadlineParser({ delimiter: "\n" }));
 
-// Read data from Arduino and update roomData
-parser.on('data', (data) => {
+serialPort.on("error", (err) => {
+  console.error("Error opening serial port:", err.message);
+});
+
+// Read data from Arduino and update gridData
+parser.on("data", async (data) => {
   try {
     console.log("Received from Arduino:", data);
 
-    const updatedRoomData = JSON.parse(data);
-    updateRoomStatus(updatedRoomData);   // Update the room data in memory
+    const updatedGridData = JSON.parse(data);
+    updateGridStatus(updatedGridData); // Update the grid data in memory
 
+    // Save the updated data to MongoDB
+    const grid = new Grid(updatedGridData);
+    await grid.save();
   } catch (error) {
     console.error("Error parsing Arduino data:", error.message);
   }
 });
 
-// REST API to fetch room data
-app.get('/api/rooms', (req, res) => {
-  res.json(roomData);
-});
+// REST API to fetch grid data
+app.use("/api/grids", GridRouter); //done
+app.use("/api/energy", EnergyRouter); //done
 
 // Start the server
 app.listen(port, () => {
