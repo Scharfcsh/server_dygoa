@@ -31,8 +31,8 @@ mongoose.connection.on("error", (err) => {
 let gridData = [];
 
 // Set up serial communication with Arduino
-const serialPort = new SerialPort({ path: "COM3", baudRate: 9600 }); // Replace 'COM3' with your Arduino's port
-const parser = serialPort.pipe(new ReadlineParser({ delimiter: "\n" }));
+const serialPort = new SerialPort({ path: "COM9", baudRate: 9600 }); // Replace 'COM3' with your Arduino's port
+const parser =  serialPort.pipe(new ReadlineParser({ delimiter: "\n" }));
 
 serialPort.on("error", (err) => {
   console.error("Error opening serial port:", err.message);
@@ -41,14 +41,17 @@ serialPort.on("error", (err) => {
 // Read data from Arduino and update gridData
 parser.on("data", async (data) => {
   try {
+    if(data.includes("Error")) {
+      return;
+    }
     console.log("Received from Arduino:", data);
 
-    const updatedGridData = JSON.parse(data);
-    updateGridStatus(updatedGridData); // Update the grid data in memory
+    // const updatedGridData = JSON.parse(data);
+    // updateGridStatus(updatedGridData); // Update the grid data in memory
 
-    // Save the updated data to MongoDB
-    const grid = new Grid(updatedGridData);
-    await grid.save();
+    // // Save the updated data to MongoDB
+    // const grid = new Grid(updatedGridData);
+    // await grid.save();
   } catch (error) {
     console.error("Error parsing Arduino data:", error.message);
   }
