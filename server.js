@@ -27,8 +27,25 @@ mongoose.connection.on("connected", () => {
 mongoose.connection.on("error", (err) => {
   console.error("Error connecting to MongoDB:", err.message);
 });
+const sectors = [
+  { name: "Sector1", value: 2, active: false },
+  { name: "Sector2", value: 3, active: false },
+  { name: "Sector3", value: 4, active: true },
+  { name: "Sector4", value: 8, active: false },
+  { name: "Sector5", value: 9, active: true },
+  { name: "Sector6", value: 10, active: false },
+];
 
-
+function sendInitialData() {
+  const dataString = JSON.stringify(sectors);
+  port.write(dataString + '\n', (err) => {
+    if (err) {
+      console.error('Error sending data:', err.message);
+    } else {
+      console.log('Initial data sent:', dataString);
+    }
+  });
+}
 // Store grid data in memory
 let gridData = [];
 
@@ -36,27 +53,24 @@ let gridData = [];
 const serialPort = new SerialPort({ path: "COM9", baudRate: 9600 }); // Replace 'COM3' with your Arduino's port
 const parser = serialPort.pipe(new ReadlineParser({ delimiter: "\n" }));
 
-serialPort.on("open", () => {
-  const data = JSON.stringify(buildingDetails) + "\n";
-  serialPort.write(data, (err) => {
-    if (err) {
-      console.error("Error writing to Arduino:", err.message);
-      return;
-    }
-    console.log("Data sent to Arduino:", data);
-    setTimeout(() => console.log("Waiting for response..."), 1000);
-  });
+parser.on('data', (data) => {
+  console.log('Updated data received:', data);
+  try {
+    const updatedSectors = JSON.parse(data);
+    console.log('Updated Sectors:', updatedSectors);
+  } catch (err) {
+    console.error('Error parsing data:', err.message);
+  }
 });
 
-// Read data from Arduino and update gridData
-parser.on("data", async (data) => {
-  console.log("Raw data from Arduino:", data);
-  try {
-    const parsedData = JSON.parse(data.trim()); // Trim and parse JSON
-    console.log("Parsed Arduino response:", parsedData);
-  } catch (err) {
-    console.error("Error parsing Arduino data:", err.message);
-  }
+// Send data on port open
+parser.on('open', () => {
+  console.log('Serial port open');
+  sendInitialData();
+});
+
+parser.on('error', (err) => {
+  console.error('Serial port error:', err.message);
 });
 
 // REST API to fetch grid data
