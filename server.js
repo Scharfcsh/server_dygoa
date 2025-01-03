@@ -65,3 +65,6 @@ app.use("/api/energy", EnergyRouter); //done
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
+
+
+// [{ "name": "Sector1", "demand": 255, "ledState": true },{ "name": "Sector2", "demand": 255, "ledState": true },{ "name": "Sector3", "demand": 190, "ledState": true },{ "name": "Sector4", "demand": 151, "ledState": true },{ "name": "Sector5", "demand": 109, "ledState": false },{ "name": "Sector6", "demand": 85, "ledState": false }]
