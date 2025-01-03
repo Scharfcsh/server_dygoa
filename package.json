@@ -5,7 +5,7 @@
   "description": "Here's the updated endpoint structure, including **wattage** for rooms and devices. The total energy demand dynamically adjusts based on the state of the devices when toggled.",
   "main": "index.js",
   "scripts": {
-    "dev": "node index.js",
+    "start": "nodemon server.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
@@ -13,8 +13,10 @@
   "license": "ISC",
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
     "express": "^4.21.2",
-    "mongoose": "^8.9.2",
+    "mongoose": "^8.9.3",
+    "nodemon": "^3.1.9",
     "serialport": "^13.0.0"
   }
 }
