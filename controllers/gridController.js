@@ -69,3 +69,72 @@ export const getGrid = async (req, res) => {
     res.status(500).json({ error: "Internal Server Error" });
   }
 };
+
+export const getAllGrid = async (req, res) => {
+  try {
+    const { timeRange } = req.query;
+    let timeFilter = {};
+    console.log("timeRange", timeRange);
+
+    if (timeRange) {
+      const now = new Date();
+      let startTime;
+
+      switch (timeRange) {
+        case "1hr":
+          startTime = new Date(now.getTime() - 60 * 60 * 1000);
+          break;
+        case "24hr":
+          startTime = new Date(now.getTime() - 24 * 60 * 60 * 1000);
+          break;
+        case "1week":
+          startTime = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+          break;
+        default:
+          return res.status(400).json({ error: "Invalid time range" });
+      }
+
+      timeFilter = { createdAt: { $gte: startTime } };
+    }
+
+    const grids = await Grid.find(timeFilter)
+      .populate({
+        path: "subgrids",
+        populate: {
+          path: "buildings",
+          model: "Building",
+        },
+      })
+      .exec();
+
+    const gridsWithWattage = grids.map((grid) => ({
+      ...grid.toObject(),
+      subgrids: grid.subgrids.map((subgrid) => ({
+        ...subgrid.toObject(),
+        totalWattage: calculateTotalWattage(subgrid),
+      })),
+    }));
+    res.status(200).json(gridsWithWattage);
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const deleteGrid = async (req, res) => {
+  console.log("deleteGrid");
+  try {
+    const grid = await Grid.findById(req.params.gridId).populate("subgrids");
+    if (!grid) return res.status(404).json({ error: "Grid not found" });
+
+    for (const subgrid of grid.subgrids) {
+      await Building.deleteMany({ _id: { $in: subgrid.buildings } });
+      await Subgrid.findByIdAndDelete(subgrid._id);
+    }
+
+    await Grid.findByIdAndDelete(req.params.gridId);
+    res.status(204).send();
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
