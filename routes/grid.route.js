@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getGrid,
+  createGrid,
   getProduction,
   getAllGrid,
   deleteGrid,
@@ -8,7 +9,8 @@ import {
 
 const GridRouter = express.Router();
 
-GridRouter.get("/details", getGrid);
+GridRouter.get("/create", createGrid);
+GridRouter.get("/details/:gridId", getGrid);
 GridRouter.get("/production", getProduction);
 GridRouter.get("/all/time", getAllGrid);
 GridRouter.delete("/delete/:gridId", deleteGrid);

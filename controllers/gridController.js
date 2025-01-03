@@ -2,6 +2,7 @@ import { grids } from "../scripts/setGrid.js";
 import Grid from "../models/Grid.js";
 import Subgrid from "../models/SubGrid.js";
 import Building from "../models/Building.js";
+import { analyseGrid } from "./GridLogic.js";
 
 const calculateTotalWattage = (subgrid) => {
   return subgrid.buildings.reduce(
@@ -36,18 +37,20 @@ const getRandomBuildingPriority = () => {
 
 export let GridDataToArduino ={};
 // Randomly generate a grid with buildings and subgrids
-export const getGrid = async (req, res) => {
+export const createGrid = async (req, res) => {
   try {
     const building1 = new Building({
-      name: "Building 1",
-      priority: getRandomBuildingPriority(),
+      name: "Hospital",
+      // priority: getRandomBuildingPriority(),
+      priority: 1,
       wattage: getRandomBuildingWattage(),
       status: true,
     });
     await building1.save();
     const building2 = new Building({
-      name: "Building 2",
-      priority: getRandomBuildingPriority(),
+      name: "Residential",
+      // priority: getRandomBuildingPriority(),
+      priority: 3,
       wattage: getRandomBuildingWattage(),
       status: true,
     });
@@ -59,9 +62,57 @@ export const getGrid = async (req, res) => {
     });
     await subgrid1.save();
 
+    const building3 = new Building({
+      name: "Server Room",
+      // priority: getRandomBuildingPriority(),
+      priority: 1,
+      wattage: getRandomBuildingWattage(),
+      status: true,
+    });
+    await building3.save();
+
+    const building4 = new Building({
+      name: "Hotel",
+      // priority: getRandomBuildingPriority(),
+      priority: 2,
+      wattage: getRandomBuildingWattage(),
+      status: true,
+    });
+    await building4.save();
+
+    const subgrid2 = new Subgrid({
+      name: "Subgrid 2",
+      buildings: [building3, building4],
+    });
+    await subgrid2.save();
+
+    const building5 = new Building({
+      name: "Server Room",
+      // priority: getRandomBuildingPriority(),
+      priority: 1,
+      wattage: getRandomBuildingWattage(),
+      status: true,
+    });
+    await building5.save();
+
+    const building6 = new Building({
+      name: "Hotel",
+      // priority: getRandomBuildingPriority(),
+      priority: 2,
+      wattage: getRandomBuildingWattage(),
+      status: true,
+    });
+    await building6.save();
+
+    const subgrid3 = new Subgrid({
+      name: "Subgrid 3",
+      buildings: [building5, building6],
+    });
+    await subgrid3.save();
+
     const grid1 = new Grid({
       name: "Grid 1",
-      subgrids: [subgrid1],
+      subgrids: [subgrid1, subgrid2, subgrid3],
     });
     await grid1.save();
 
@@ -81,13 +132,48 @@ export const getGrid = async (req, res) => {
   }
 };
 
-let previousProduction = Math.floor(Math.random() * 1600) + 1000; // Initialize with a random value
+export const getGrid = async (req, res) => {
+  try {
+    const grid = await Grid.findById(req.params.gridId)
+      .populate({
+        path: "subgrids",
+        populate: {
+          path: "buildings",
+          model: "Building",
+        },
+      })
+      .exec();
+
+    if (!grid) {
+      console.log("Grid not found");
+      return res.status(404).json({ error: "Grid not found" });
+    }
+
+    // analyseGrid(5000);
+
+    const gridWithWattage = {
+      ...grid.toObject(),
+      totalWattage: calculateTotalWattageGrid(grid),
+      subgrids: grid.subgrids.map((subgrid) => ({
+        ...subgrid.toObject(),
+        totalWattage: calculateTotalWattage(subgrid),
+      })),
+    };
+
+    res.status(200).json(gridWithWattage);
+  } catch (error) {
+    console.log("Error fetching grid:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+let previousProduction = Math.floor(Math.random() * 1600) + 3000; // Initialize with a random value
 
 export const getProduction = async (req, res) => {
   try {
     // Generate a new production value within the range of 1000-2600
     const min = Math.max(1000, previousProduction - 300);
-    const max = Math.min(2600, previousProduction + 300);
+    const max = Math.min(4600, previousProduction + 300);
     const production = Math.floor(Math.random() * (max - min + 1)) + min;
 
     // Update the previous production value
