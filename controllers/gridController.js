@@ -10,6 +10,13 @@ const calculateTotalWattage = (subgrid) => {
   );
 };
 
+const calculateTotalWattageGrid = (grid) => {
+  return grid.subgrids.reduce(
+    (total, subgrid) => total + calculateTotalWattage(subgrid),
+    0
+  );
+};
+
 export const getGridSubgrids = (req, res) => {
   const grid = grids.find((g) => g.id === req.params.gridId);
   if (!grid) return res.status(404).json({ error: "Grid not found" });
@@ -27,6 +34,7 @@ const getRandomBuildingPriority = () => {
   return Math.floor(Math.random() * 3) + 1; // Ensure it returns a value between 1 and 1000
 };
 
+// Randomly generate a grid with buildings and subgrids
 export const getGrid = async (req, res) => {
   try {
     const building1 = new Building({
@@ -58,6 +66,7 @@ export const getGrid = async (req, res) => {
 
     const gridWithWattage = {
       ...grid1.toObject(),
+      totalWattage: calculateTotalWattageGrid(grid1),
       subgrids: grid1.subgrids.map((subgrid) => ({
         ...subgrid.toObject(),
         totalWattage: calculateTotalWattage(subgrid),
@@ -65,6 +74,24 @@ export const getGrid = async (req, res) => {
     };
 
     res.status(200).json(gridWithWattage);
+  } catch (error) {
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+let previousProduction = Math.floor(Math.random() * 1600) + 1000; // Initialize with a random value
+
+export const getProduction = async (req, res) => {
+  try {
+    // Generate a new production value within the range of 1000-2600
+    const min = Math.max(1000, previousProduction - 300);
+    const max = Math.min(2600, previousProduction + 300);
+    const production = Math.floor(Math.random() * (max - min + 1)) + min;
+
+    // Update the previous production value
+    previousProduction = production;
+
+    res.status(200).json({ production });
   } catch (error) {
     res.status(500).json({ error: "Internal Server Error" });
   }
