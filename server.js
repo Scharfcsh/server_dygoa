@@ -29,6 +29,7 @@ mongoose.connection.on("error", (err) => {
   console.error("Error connecting to MongoDB:", err.message);
 });
 
+
 // Store grid data in memory
 let gridData = [];
 
@@ -36,26 +37,26 @@ let gridData = [];
 const serialPort = new SerialPort({ path: "COM9", baudRate: 9600 }); // Replace 'COM3' with your Arduino's port
 const parser = serialPort.pipe(new ReadlineParser({ delimiter: "\n" }));
 
-serialPort.on("error", (err) => {
-  console.error("Error opening serial port:", err.message);
+serialPort.on("open", () => {
+  const data = JSON.stringify(buildingDetails) + "\n";
+  serialPort.write(data, (err) => {
+    if (err) {
+      console.error("Error writing to Arduino:", err.message);
+      return;
+    }
+    console.log("Data sent to Arduino:", data);
+    setTimeout(() => console.log("Waiting for response..."), 1000);
+  });
 });
 
 // Read data from Arduino and update gridData
 parser.on("data", async (data) => {
+  console.log("Raw data from Arduino:", data);
   try {
-    if (data.includes("Error")) {
-      return;
-    }
-    console.log("Received from Arduino:", data);
-
-    // const updatedGridData = JSON.parse(data);
-    // updateGridStatus(updatedGridData); // Update the grid data in memory
-
-    // // Save the updated data to MongoDB
-    // const grid = new Grid(updatedGridData);
-    // await grid.save();
-  } catch (error) {
-    console.error("Error parsing Arduino data:", error.message);
+    const parsedData = JSON.parse(data.trim()); // Trim and parse JSON
+    console.log("Parsed Arduino response:", parsedData);
+  } catch (err) {
+    console.error("Error parsing Arduino data:", err.message);
   }
 });
 
@@ -67,12 +68,3 @@ app.use("/api/energy", EnergyRouter); //done
 app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
-
-// Building data from Arduino:
-
-// [{ "name": "Sector1", "demand": 255, "ledState": true },
-// { "name": "Sector2", "demand": 255, "ledState": true },
-// { "name": "Sector3", "demand": 190, "ledState": true },
-// { "name": "Sector4", "demand": 151, "ledState": true },
-// { "name": "Sector5", "demand": 109, "ledState": false },
-// { "name": "Sector6", "demand": 85, "ledState": false }]

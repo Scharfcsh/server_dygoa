@@ -35,6 +35,7 @@ const getRandomBuildingPriority = () => {
   return Math.floor(Math.random() * 3) + 1; // Ensure it returns a value between 1 and 1000
 };
 
+export let GridDataToArduino ={};
 // Randomly generate a grid with buildings and subgrids
 export const createGrid = async (req, res) => {
   try {
@@ -123,6 +124,7 @@ export const createGrid = async (req, res) => {
         totalWattage: calculateTotalWattage(subgrid),
       })),
     };
+    GridDataToArduino= gridWithWattage;
 
     res.status(200).json(gridWithWattage);
   } catch (error) {
