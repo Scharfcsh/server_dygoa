@@ -7,6 +7,7 @@ import dotenv from "dotenv";
 import Grid from "./models/Grid.js";
 import GridRouter from "./routes/grid.route.js";
 import EnergyRouter from "./routes/energy.routes.js";
+import cors from "cors";
 
 dotenv.config();
 
@@ -15,6 +16,7 @@ const port = 3001;
 
 // Middleware
 app.use(bodyParser.json());
+app.use(cors());
 
 // Connect to MongoDB
 mongoose.connect(process.env.MONGODB_URI);
