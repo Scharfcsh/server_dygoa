@@ -147,7 +147,7 @@ export const getGrid = async (req, res) => {
       return res.status(404).json({ error: "Grid not found" });
     }
 
-    analyseGrid(5000);
+    // analyseGrid(5000);
 
     const gridWithWattage = {
       ...grid.toObject(),
