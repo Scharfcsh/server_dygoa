@@ -32,7 +32,7 @@ let gridData = [];
 
 // Set up serial communication with Arduino
 const serialPort = new SerialPort({ path: "COM9", baudRate: 9600 }); // Replace 'COM3' with your Arduino's port
-const parser =  serialPort.pipe(new ReadlineParser({ delimiter: "\n" }));
+const parser = serialPort.pipe(new ReadlineParser({ delimiter: "\n" }));
 
 serialPort.on("error", (err) => {
   console.error("Error opening serial port:", err.message);
@@ -41,7 +41,7 @@ serialPort.on("error", (err) => {
 // Read data from Arduino and update gridData
 parser.on("data", async (data) => {
   try {
-    if(data.includes("Error")) {
+    if (data.includes("Error")) {
       return;
     }
     console.log("Received from Arduino:", data);
@@ -66,5 +66,11 @@ app.listen(port, () => {
   console.log(`Server is running on http://localhost:${port}`);
 });
 
+// Building data from Arduino:
 
-// [{ "name": "Sector1", "demand": 255, "ledState": true },{ "name": "Sector2", "demand": 255, "ledState": true },{ "name": "Sector3", "demand": 190, "ledState": true },{ "name": "Sector4", "demand": 151, "ledState": true },{ "name": "Sector5", "demand": 109, "ledState": false },{ "name": "Sector6", "demand": 85, "ledState": false }]
+// [{ "name": "Sector1", "demand": 255, "ledState": true },
+// { "name": "Sector2", "demand": 255, "ledState": true },
+// { "name": "Sector3", "demand": 190, "ledState": true },
+// { "name": "Sector4", "demand": 151, "ledState": true },
+// { "name": "Sector5", "demand": 109, "ledState": false },
+// { "name": "Sector6", "demand": 85, "ledState": false }]
