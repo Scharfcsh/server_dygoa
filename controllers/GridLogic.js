@@ -41,6 +41,9 @@ export const analyseGrid = async (production) => {
   console.log(buildings);
   console.log("=================================================");
 
+  const savePromises = [];
+  const savedBuildings = new Set();
+
   while (totalDemand > production) {
     const building = buildings.pop();
     if (!building) {
@@ -48,10 +51,13 @@ export const analyseGrid = async (production) => {
       break;
     }
 
-    console.log(`Turning off ${building.name}`);
-    building.status = false;
-    building.save();
-    totalDemand -= building.wattage;
+    if (!savedBuildings.has(building._id)) {
+      console.log(`Turning off ${building.name}`);
+      building.status = false;
+      savePromises.push(building.save());
+      savedBuildings.add(building._id);
+      totalDemand -= building.wattage;
+    }
   }
 
   // Sort buildings by priority in descending order for turning on
@@ -65,11 +71,16 @@ export const analyseGrid = async (production) => {
       break;
     }
 
-    console.log(`Turning on ${building.name}`);
-    building.status = true;
-    building.save();
-    totalDemand += building.wattage;
+    if (!savedBuildings.has(building._id)) {
+      console.log(`Turning on ${building.name}`);
+      building.status = true;
+      savePromises.push(building.save());
+      savedBuildings.add(building._id);
+      totalDemand += building.wattage;
+    }
   }
+
+  await Promise.all(savePromises);
 
   console.log("=================================================");
   console.log("Grid analysis completed");
