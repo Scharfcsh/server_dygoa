@@ -4,6 +4,8 @@ import Subgrid from "../models/SubGrid.js";
 import Building from "../models/Building.js";
 import { analyseGrid } from "./GridLogic.js";
 
+const gridId = "67785a7ebae3aae905565775";
+
 const calculateTotalWattage = (subgrid) => {
   return subgrid.buildings.reduce(
     (total, building) => total + building.wattage,
@@ -35,7 +37,7 @@ const getRandomBuildingPriority = () => {
   return Math.floor(Math.random() * 3) + 1; // Ensure it returns a value between 1 and 1000
 };
 
-export let GridDataToArduino ={};
+export let GridDataToArduino = {};
 // Randomly generate a grid with buildings and subgrids
 export const createGrid = async (req, res) => {
   try {
@@ -124,7 +126,7 @@ export const createGrid = async (req, res) => {
         totalWattage: calculateTotalWattage(subgrid),
       })),
     };
-    GridDataToArduino= gridWithWattage;
+    GridDataToArduino = gridWithWattage;
 
     res.status(200).json(gridWithWattage);
   } catch (error) {
@@ -164,6 +166,16 @@ export const getGrid = async (req, res) => {
   } catch (error) {
     console.log("Error fetching grid:", error);
     res.status(500).json({ error: "Internal Server Error" });
+  }
+};
+
+export const getProductionFromDB = async (data) => {
+  try {
+    const grid = await Grid.findById(gridId);
+    grid.production = data;
+    grid.save();
+  } catch (error) {
+    console.log("Error fetching grid:", error);
   }
 };
 
