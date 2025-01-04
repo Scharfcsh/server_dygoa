@@ -184,12 +184,17 @@ let previousProduction = Math.floor(Math.random() * 1600) + 3000; // Initialize 
 export const getProduction = async (req, res) => {
   try {
     // Generate a new production value within the range of 1000-2600
-    const min = Math.max(1000, previousProduction - 300);
-    const max = Math.min(4600, previousProduction + 300);
-    const production = Math.floor(Math.random() * (max - min + 1)) + min;
+    // const min = Math.max(1000, previousProduction - 300);
+    // const max = Math.min(4600, previousProduction + 300);
+    // const production = Math.floor(Math.random() * (max - min + 1)) + min;
 
     // Update the previous production value
-    previousProduction = production;
+    // previousProduction = production;
+
+    const grid = await Grid.findById(gridId);
+
+    const production = grid.production;
+    analyseGrid(production);
 
     res.status(200).json({ production });
   } catch (error) {
