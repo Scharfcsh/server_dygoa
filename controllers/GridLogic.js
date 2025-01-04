@@ -38,37 +38,30 @@ export const analyseGrid = async (production) => {
   // Sort buildings by priority
   buildings.sort((a, b) => a.priority - b.priority);
 
-  console.log(buildings);
+  // console.log(buildings);
   console.log("=================================================");
 
   while (totalDemand > production) {
     const building = buildings.pop();
     if (!building) {
-      console.log("No more buildings to turn off");
+      // console.log("No more buildings to turn off");
       break;
     }
 
     console.log(`Turning off ${building.name}`);
     building.status = false;
-    building.save();
     totalDemand -= building.wattage;
+    building.save();
   }
 
   // Sort buildings by priority in descending order for turning on
-  buildings = grid.subgrids.flatMap((subgrid) => subgrid.buildings);
-  buildings.sort((a, b) => b.priority - a.priority);
-
-  while (totalDemand < production) {
-    const building = buildings.shift();
-    if (!building) {
-      console.log("No more buildings to turn on");
-      break;
+  for (const building of buildings) {
+    if (totalDemand + building.wattage <= production && !building.status) {
+      console.log(`Turning on ${building.name}`);
+      building.status = true;
+      totalDemand += building.wattage; // Adjust total demand
+      building.save();
     }
-
-    console.log(`Turning on ${building.name}`);
-    building.status = true;
-    building.save();
-    totalDemand += building.wattage;
   }
 
   console.log("=================================================");
@@ -76,7 +69,11 @@ export const analyseGrid = async (production) => {
   console.log("=================================================");
 
   await grid.save();
-  console.log(buildings);
+  // console.log(buildings);
   console.log("=================================================");
-  console.log(grid.subgrids.flatMap((subgrid) => subgrid.buildings));
+  const parsedGrid = grid.subgrids.flatMap((subgrid) => subgrid.buildings);
+  const status= parsedGrid.map(item => item.status ? '1' : '0').join('');
+  return status;
 };
+
+
